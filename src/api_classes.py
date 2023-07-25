@@ -1,57 +1,68 @@
 import os
-import json
-import re
 import time
 from abc import ABC, abstractmethod
-from configparser import ParsingError
-
 import requests
 
 
 class PlatformsAPI(ABC):
 
     @abstractmethod
-    def get_vacancies(self, keyword):
+    def get_vacancies(self, query):
         pass
 
 
 class HeadHunterAPI(PlatformsAPI):
-    url = 'https://api.hh.ru/vacancies'
+    url = "https://api.hh.ru/vacancies"
 
-    def get_vacancies(self, keyword):
-        # Справочник для параметров GET-запроса
-        params = {
-            "text": keyword,  # Ключевое слово для поиска вакансий
-            "page": None,
-            "per_page": 100,  # Кол-во вакансий на 1 странице
-            "archive": False,
-        }
-
-        data = requests.get(self.url, params=params).json()  # Посылаем запрос к API
-
-        return json.dumps(data, indent=2, ensure_ascii=False)
+    def get_vacancies(self, query: str):
+        """
+        Получение списка вакансий с платформы HeadHunter
+        """
+        vacancies_lst = []
+        for page in range(5):
+            params = {'per_page': 100,
+                      'page': page,
+                      'text': query,
+                      'search_field': 'name',
+                      'order_by': "publication_time",
+                      }
+            vacancies = requests.get(self.url, params=params).json()
+            vacancies_lst.extend(vacancies['items'])
+            if (vacancies['pages'] - page) <= 1:
+                break
+            time.sleep(0.5)
+        return vacancies_lst
 
 
 class SuperJobAPI(PlatformsAPI):
     url = 'https://api.superjob.ru/2.0/vacancies/'
 
-    def get_vacancies(self, keyword):
-        self.params = {
-            'keyword': keyword,  # Ключевое слово для поиска вакансий
-            'page': None,
-            'count': 100,  # Кол-во вакансий на 1 странице
-            'archive': False,
-        }
-        self.headers = {
-            'X-Api-App-Id': os.getenv('X-Api-App-Id')
-        }
-        data = requests.get(self.url, headers=self.headers, params=self.params)
-        if data.status_code != 200:
-            raise ParsingError(f"Ошибка получения вакансий! Статус: {data.status_code}")
-        return json.dumps(data.json()["objects"], indent=2, ensure_ascii=False)
+    def __init__(self):
+        self.x_api_app_id = os.getenv('X-Api-App-Id')
 
+    def get_vacancies(self, query: str):
+        """
+        Получение списка вакансий с платформы SuperJob
+        """
+        vacancies_lst = []
+        for page in range(5):
 
-#hh_api = HeadHunterAPI()
-#print(hh_api.get_vacancies('python'))
-#superjob_api = SuperJobAPI()
-# print(superjob_api.get_vacancies('python'))
+            headers = {
+                'X-Api-App-Id': self.x_api_app_id,
+            }
+            params = {'keyword': query,
+                      'page': page,
+                      'count': 100,
+                      'order_direction': 'desc',
+                      }
+
+            vacancies = requests.get(self.url, headers=headers, params=params).json()
+            try:
+                vacancies_lst.extend(vacancies['objects'])
+            except KeyError:
+                return print(vacancies['error']['message'])
+            else:
+                if not vacancies['more']:
+                    break
+                time.sleep(0.5)
+        return vacancies_lst

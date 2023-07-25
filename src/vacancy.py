@@ -61,9 +61,6 @@ class Vacancy:
     def convert_salary(self_sal: str, other_sal: str) -> tuple:
         """
         Конвертируем зарплату для возможности сравнения
-        :param self_sal: str
-        :param other_sal: str
-        :return: tuple
         """
         # Разбиваем зарплату на отдельные элементы
         self_salary_list = [i for i in self_sal.split() if i.isdigit()]
