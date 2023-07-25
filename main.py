@@ -28,7 +28,7 @@ def user_interaction():
             if not filtered_vacancies and len(convert_vacancies) != 0:
                 print("К сожалению, нет вакансий соответствующих заданным критериям.\n")
                 continue
-            # filtered_vacancies = filter_vacancies(vacancies, filter_words)
+
             process_vacancies(filtered_vacancies, top_n)
 
         elif choose_platform == 2:
@@ -46,10 +46,11 @@ def user_interaction():
             json_saver.add_vacancy(convert_vacancies)
             vacancies_list = json_saver.get_vacancies_by_keyword(filter_word)
             filtered_vacancies = convert_vacancy(vacancies_list)
+
             if not filtered_vacancies and len(convert_vacancies) != 0:
                 print("К сожалению, нет вакансий соответствующих заданным критериям.\n")
                 continue
-            # filtered_vacancies = filter_vacancies(convert_vacancies, filter_words)
+
             process_vacancies(filtered_vacancies, top_n)
 
         elif choose_platform == 3:
@@ -68,10 +69,10 @@ def user_interaction():
             json_saver.add_vacancy(convert_vacancies)
             vacancies_list = json_saver.get_vacancies_by_keyword(filter_word)
             filtered_vacancies = convert_vacancy(vacancies_list)
+
             if not filtered_vacancies and len(convert_vacancies) != 0:
                 print("К сожалению, нет вакансий соответствующих заданным критериям.\n")
                 continue
-            # filtered_vacancies = filter_vacancies(convert_vacancies, filter_words)
             process_vacancies(filtered_vacancies, top_n)
 
         elif choose_platform == 4:

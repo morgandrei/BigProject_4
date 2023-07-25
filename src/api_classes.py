@@ -4,17 +4,17 @@ from abc import ABC, abstractmethod
 import requests
 
 
-class PlatformsAPI(ABC):
+class Platforms(ABC):
 
     @abstractmethod
-    def get_vacancies(self, query):
+    def get_vacancies(self, keyword):
         pass
 
 
-class HeadHunterAPI(PlatformsAPI):
+class HeadHunterAPI(Platforms):
     url = "https://api.hh.ru/vacancies"
 
-    def get_vacancies(self, query: str):
+    def get_vacancies(self, keyword):
         """
         Получение списка вакансий с платформы HeadHunter
         """
@@ -22,9 +22,10 @@ class HeadHunterAPI(PlatformsAPI):
         for page in range(5):
             params = {'per_page': 100,
                       'page': page,
-                      'text': query,
+                      'text': keyword,
                       'search_field': 'name',
                       'order_by': "publication_time",
+                      'archived': False,
                       }
             vacancies = requests.get(self.url, params=params).json()
             vacancies_lst.extend(vacancies['items'])
@@ -34,13 +35,13 @@ class HeadHunterAPI(PlatformsAPI):
         return vacancies_lst
 
 
-class SuperJobAPI(PlatformsAPI):
+class SuperJobAPI(Platforms):
     url = 'https://api.superjob.ru/2.0/vacancies/'
 
     def __init__(self):
         self.x_api_app_id = os.getenv('X-Api-App-Id')
 
-    def get_vacancies(self, query: str):
+    def get_vacancies(self, keyword):
         """
         Получение списка вакансий с платформы SuperJob
         """
@@ -50,10 +51,11 @@ class SuperJobAPI(PlatformsAPI):
             headers = {
                 'X-Api-App-Id': self.x_api_app_id,
             }
-            params = {'keyword': query,
+            params = {'keyword': keyword,
                       'page': page,
                       'count': 100,
                       'order_direction': 'desc',
+                      'archive': False,
                       }
 
             vacancies = requests.get(self.url, headers=headers, params=params).json()
